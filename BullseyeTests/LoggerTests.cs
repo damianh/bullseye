@@ -25,5 +25,37 @@ namespace BullseyeTests
             $"Then the message contains \"{expectedSubstring}\""
                 .x(() => Assert.Contains(expectedSubstring, console.Out.ToString()));
         }
+
+        [Scenario]
+        public void TeamCityServiceMessagesStarting(Logger log, TestConsole console)
+        {
+            "Given a logger"
+                .x(() => log = new Logger(console = new TestConsole(), false, false, false, new Palette(false, Host.TeamCity, OperatingSystem.Unknown), false, Host.TeamCity));
+
+            "When starting"
+                .x(() => log.Starting("foo"));
+
+            "Then the message contains teamcity block opened service message"
+                .x(() => Assert.Contains("##teamcity[blockOpened name='foo']", console.Out.ToString()));
+
+            "And the message contains teamcity block closed service message"
+                .x(() => Assert.Contains("##teamcity[blockClosed name='foo']", console.Out.ToString()));
+        }
+
+        [Scenario]
+        public void TeamCityServiceMessagesStartingWithInput(Logger log, TestConsole console)
+        {
+            "Given a logger"
+                .x(() => log = new Logger(console = new TestConsole(), false, false, false, new Palette(false, Host.TeamCity, OperatingSystem.Unknown), false, Host.TeamCity));
+
+            "When starting"
+                .x(() => log.Starting("foo", "bar"));
+
+            "Then the message contains teamcity block opened service message"
+                .x(() => Assert.Contains("##teamcity[blockOpened name='foo']", console.Out.ToString()));
+
+            "And the message contains teamcity block closed service message"
+                .x(() => Assert.Contains("##teamcity[blockClosed name='foo']", console.Out.ToString()));
+        }
     }
 }

@@ -77,32 +77,74 @@ namespace Bullseye.Internal
         public Task Succeeded(List<string> targets, double elapsedMilliseconds) =>
             this.console.Out.WriteLineAsync(Message(p.Succeeded, $"Succeeded.", targets, elapsedMilliseconds));
 
-        public Task Starting(string target) =>
-            this.console.Out.WriteLineAsync(Message(p.Starting, "Starting...", target, null));
+        public async Task Starting(string target)
+        {
+            await this.console.Out.WriteLineAsync(Message(p.Starting, "Starting...", target, null)).ConfigureAwait(false);
+            if (this.host == Host.TeamCity)
+            {
+                await WriteTeamCityBlockOpened(target).ConfigureAwait(false);
+            }
+        }
 
         public Task Error(string target, Exception ex) =>
             this.console.Out.WriteLineAsync(Message(p.Failed, ex.ToString(), target));
 
-        public Task Failed(string target, Exception ex, double elapsedMilliseconds) =>
-            this.console.Out.WriteLineAsync(Message(p.Failed, $"Failed! {ex.Message}", target, elapsedMilliseconds));
+        public async Task Failed(string target, Exception ex, double elapsedMilliseconds)
+        {
+            await this.console.Out.WriteLineAsync(Message(p.Failed, $"Failed! {ex.Message}", target, elapsedMilliseconds))
+                .ConfigureAwait(false);
+
+            if (this.host == Host.TeamCity)
+            {
+                await WriteTeamCityBlockClosed(target).ConfigureAwait(false);
+            }
+        }
 
         public Task Failed(string target, double elapsedMilliseconds) =>
             this.console.Out.WriteLineAsync(Message(p.Failed, $"Failed!", target, elapsedMilliseconds));
 
-        public Task Succeeded(string target, double? elapsedMilliseconds) =>
-            this.console.Out.WriteLineAsync(Message(p.Succeeded, "Succeeded.", target, elapsedMilliseconds));
+        public async Task Succeeded(string target, double? elapsedMilliseconds)
+        {
+            await this.console.Out.WriteLineAsync(Message(p.Succeeded, "Succeeded.", target, elapsedMilliseconds))
+                .ConfigureAwait(false);
+            if (this.host == Host.TeamCity)
+            {
+                await WriteTeamCityBlockClosed(target).ConfigureAwait(false);
+            }
+        }
 
-        public Task Starting<TInput>(string target, TInput input) =>
-            this.console.Out.WriteLineAsync(MessageWithInput(p.Starting, "Starting...", target, input, null));
+        public async Task Starting<TInput>(string target, TInput input)
+        {
+            await this.console.Out.WriteLineAsync(this.MessageWithInput(this.p.Starting, "Starting...", target, input, null))
+                .ConfigureAwait(false);
+            if (this.host == Host.TeamCity)
+            {
+                await WriteTeamCityBlockOpened(target).ConfigureAwait(false);
+            }
+        }
 
         public Task Error<TInput>(string target, TInput input, Exception ex) =>
             this.console.Out.WriteLineAsync(MessageWithInput(p.Failed, ex.ToString(), target, input));
 
-        public Task Failed<TInput>(string target, TInput input, Exception ex, double elapsedMilliseconds) =>
-            this.console.Out.WriteLineAsync(MessageWithInput(p.Failed, $"Failed! {ex.Message}", target, input, elapsedMilliseconds));
+        public async Task Failed<TInput>(string target, TInput input, Exception ex, double elapsedMilliseconds)
+        {
+            await this.console.Out.WriteLineAsync(this.MessageWithInput(this.p.Failed, $"Failed! {ex.Message}", target, input, elapsedMilliseconds))
+                .ConfigureAwait(false);
+            if (this.host == Host.TeamCity)
+            {
+                await WriteTeamCityBlockClosed(target).ConfigureAwait(false);
+            }
+        }
 
-        public Task Succeeded<TInput>(string target, TInput input, double elapsedMilliseconds) =>
-            this.console.Out.WriteLineAsync(MessageWithInput(p.Succeeded, "Succeeded.", target, input, elapsedMilliseconds));
+        public async Task Succeeded<TInput>(string target, TInput input, double elapsedMilliseconds)
+        {
+            await this.console.Out.WriteLineAsync(this.MessageWithInput(this.p.Succeeded, "Succeeded.", target, input, elapsedMilliseconds))
+                .ConfigureAwait(false);
+            if (this.host == Host.TeamCity)
+            {
+                await WriteTeamCityBlockClosed(target).ConfigureAwait(false);
+            }
+        }
 
         public Task NoInputs(string target) =>
             this.console.Out.WriteLineAsync(Message(p.Warning, "No inputs!", target, null));
@@ -217,6 +259,12 @@ namespace Bullseye.Internal
                 (!specific && this.parallel ? $"{p.Option} (parallel){p.Default}" : "") +
                 (!specific && this.skipDependencies ? $"{p.Option} (skip dependencies){p.Default}" : "") +
                 (!this.dryRun && elapsedMilliseconds.HasValue ? $"{p.Timing} ({ToStringFromMilliseconds(elapsedMilliseconds.Value)}){p.Default}" : "");
+
+        private Task WriteTeamCityBlockOpened(string target) =>
+            this.console.Out.WriteLineAsync($"##teamcity[blockOpened name='{target}']");
+
+        private Task WriteTeamCityBlockClosed(string target) =>
+            this.console.Out.WriteLineAsync($"##teamcity[blockClosed name='{target}']");
 
         private static string ToStringFromMilliseconds(double milliseconds)
         {
