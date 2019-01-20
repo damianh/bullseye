@@ -19,8 +19,9 @@ namespace Bullseye.Internal
         private readonly bool parallel;
         private readonly Palette p;
         private readonly bool verbose;
+        private readonly Host host;
 
-        public Logger(IConsole console, bool skipDependencies, bool dryRun, bool parallel, Palette palette, bool verbose)
+        public Logger(IConsole console, bool skipDependencies, bool dryRun, bool parallel, Palette palette, bool verbose, Host host)
         {
             this.console = console;
             this.skipDependencies = skipDependencies;
@@ -28,6 +29,7 @@ namespace Bullseye.Internal
             this.parallel = parallel;
             this.p = palette;
             this.verbose = verbose;
+            this.host = host;
         }
 
         public async Task Version()

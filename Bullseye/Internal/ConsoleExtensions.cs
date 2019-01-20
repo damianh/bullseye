@@ -57,7 +57,7 @@ namespace Bullseye.Internal
             }
 
             var palette = new Palette(options.NoColor, options.Host, operatingSystem);
-            var log = new Logger(console, options.SkipDependencies, options.DryRun, options.Parallel, palette, options.Verbose);
+            var log = new Logger(console, options.SkipDependencies, options.DryRun, options.Parallel, palette, options.Verbose, options.Host);
 
             await log.Version().ConfigureAwait(false);
             await log.Verbose($"Host: {options.Host}{(options.Host != Host.Unknown ? $" ({(isHostDetected ? "detected" : "forced")})" : "")}").ConfigureAwait(false);
